@@ -92,6 +92,7 @@ h2 { font-size: 1.75rem; }
 .rules { text-align: left; margin: 0; padding-left: 1.2rem; color: var(--text-dim); display: grid; gap: 8px; }
 
 .player-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.player-item { display: grid; gap: 6px; }
 .player-row { display: flex; gap: 10px; }
 .input {
   flex: 1; min-width: 0; min-height: 56px;
@@ -99,6 +100,7 @@ h2 { font-size: 1.75rem; }
   background: var(--surface); border: 2px solid var(--surface-2);
   border-radius: var(--radius); padding: 0 14px;
 }
+.input--invalid { border-color: var(--impostor); }
 .input::placeholder { color: var(--text-dim); opacity: 0.7; }
 
 .field { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -111,6 +113,15 @@ h2 { font-size: 1.75rem; }
   border: 2px solid var(--surface-2); border-radius: var(--radius); cursor: pointer;
 }
 .segmented__btn.is-active { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+
+.error-box {
+  list-style: none; margin: 0; padding: 12px 14px;
+  background: var(--surface); border: 2px solid var(--impostor);
+  border-radius: var(--radius); display: grid; gap: 4px;
+}
+.error-box li::before { content: 'Problem: '; font-weight: 800; }
+.error-text { margin: 0; color: #ff9db0; font-size: 0.9rem; font-weight: 600; }
+.error-text::before { content: 'Problem: '; font-weight: 800; }
 
 .notice { background: var(--surface); border-radius: var(--radius); padding: 12px 14px; margin: 0; color: var(--text-dim); }
 
