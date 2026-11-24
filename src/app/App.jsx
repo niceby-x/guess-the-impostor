@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createGame } from '../game/createGame.js'
-import GameReadyPage from '../pages/GameReadyPage.jsx'
+import { beginHintRound } from '../game/phaseTransitions.js'
+import HintRoundPage from '../pages/HintRoundPage.jsx'
 import HomePage from '../pages/HomePage.jsx'
 import PlayerSetupPage from '../pages/PlayerSetupPage.jsx'
+import RoleRevealPage from '../pages/RoleRevealPage.jsx'
 import SettingsPage from '../pages/SettingsPage.jsx'
 
 // A simple screen switcher. No router package needed yet.
@@ -11,11 +13,25 @@ const STARTER_NAMES = ['', '', '', '']
 const DEFAULT_SETTINGS = { impostorCount: 1, hintSeconds: 30, discussionSeconds: 60 }
 
 export default function App() {
-  const [screen, setScreen] = useState('HOME') // HOME | SETUP | SETTINGS | READY
+  const [screen, setScreen] = useState('HOME') // HOME | SETUP | SETTINGS | REVEAL | HINTS
   const [names, setNames] = useState(STARTER_NAMES)
   // Settings also live here, so they are kept when the host goes back and forth.
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
   const [game, setGame] = useState(null)
+
+  // A match is in progress while roles are being revealed or hints are running.
+  // Refreshing or closing the tab would lose it, so the browser asks first
+  // (guide section 10.2). Nothing is saved to localStorage.
+  const matchActive = screen === 'REVEAL' || screen === 'HINTS'
+  useEffect(() => {
+    if (!matchActive) return undefined
+    function warn(event) {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [matchActive])
 
   // Setup has already validated the names and passes back the cleaned list.
   function handleSetupDone(cleanedNames) {
@@ -35,7 +51,7 @@ export default function App() {
     })
     if (result.ok) {
       setGame(result.game)
-      setScreen('READY')
+      setScreen('REVEAL')
     }
     return result
   }
@@ -60,8 +76,18 @@ export default function App() {
           onStart={handleStartGame}
         />
       )}
-      {screen === 'READY' && game && (
-        <GameReadyPage game={game} onBack={() => setScreen('SETTINGS')} />
+      {screen === 'REVEAL' && game && (
+        <RoleRevealPage
+          game={game}
+          onFinished={() => {
+            setGame(beginHintRound(game))
+            setScreen('HINTS')
+          }}
+          onQuit={() => setScreen('SETTINGS')}
+        />
+      )}
+      {screen === 'HINTS' && game && (
+        <HintRoundPage onBack={() => setScreen('SETTINGS')} />
       )}
     </main>
   )
