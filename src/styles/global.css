@@ -123,6 +123,38 @@ h2 { font-size: 1.75rem; }
 .error-text { margin: 0; color: #ff9db0; font-size: 0.9rem; font-weight: 600; }
 .error-text::before { content: 'Problem: '; font-weight: 800; }
 
+/* Handoff (neutral) and role reveal (private) screens */
+.status-chip {
+  display: inline-block; padding: 4px 12px; border-radius: 999px;
+  background: var(--surface-2); color: var(--text-dim);
+  font-weight: 800; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.handoff { gap: 12px; }
+.handoff__lead { margin: 12px 0 0; color: var(--text-dim); font-size: 1.1rem; }
+.handoff__name { font-size: clamp(2.4rem, 13vw, 3.6rem); font-weight: 900; word-break: break-word; }
+.handoff__extras { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.link-small {
+  background: none; border: 0; color: var(--text-dim); font: inherit;
+  text-decoration: underline; min-height: 44px; padding: 0 8px; cursor: pointer;
+}
+.confirm {
+  width: 100%; display: grid; gap: 10px; text-align: left;
+  background: var(--surface); border: 2px solid var(--surface-2);
+  border-radius: var(--radius); padding: 14px;
+}
+.confirm p { margin: 0; }
+.focus-target:focus { outline: none; }
+
+.role-card {
+  min-height: calc(100dvh - 60px); justify-content: center; align-items: center;
+  text-align: center; border-radius: var(--radius); padding: 24px 16px;
+}
+.role-card--regular { background: var(--surface); border: 4px solid var(--regular); }
+.role-card--impostor { background: var(--surface); border: 4px solid var(--impostor); }
+.role-card .badge { font-size: 1rem; padding: 6px 16px; }
+.role-card__label { margin: 8px 0 0; font-size: 1.2rem; color: var(--text-dim); font-weight: 700; }
+.role-card__secret { margin: 0; font-size: clamp(2.2rem, 12vw, 3.4rem); font-weight: 900; word-break: break-word; }
+
 .notice { background: var(--surface); border-radius: var(--radius); padding: 12px 14px; margin: 0; color: var(--text-dim); }
 
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
