@@ -1,19 +1,35 @@
 import { useState } from 'react'
+import { getImpostorRange, validateSetup } from '../game/validateSetup.js'
 
-// Milestone 1: visual prototype only. The allowed impostor range is shown
-// using the guide's formula floor((players - 1) / 2), but nothing is
-// validated and "Start game" does nothing yet (Milestones 2 and 3).
+// "Start game" now validates the whole setup. Roles and the word bank arrive
+// in Milestone 3, so a valid setup only shows a confirmation for now.
 const HINT_OPTIONS = [15, 30, 45, 60]
 const DISCUSSION_OPTIONS = [30, 60, 90, 120]
 
-export default function SettingsPage({ playerCount, onBack }) {
-  const maxImpostors = Math.max(1, Math.floor((playerCount - 1) / 2))
-  const [impostors, setImpostors] = useState(1)
+export default function SettingsPage({ names, onBack }) {
+  const playerCount = names.length
+  const { min, max } = getImpostorRange(playerCount)
+  const [impostors, setImpostors] = useState(min)
   const [hintSeconds, setHintSeconds] = useState(30)
   const [discussionSeconds, setDiscussionSeconds] = useState(60)
-  const [notice, setNotice] = useState('')
+  const [result, setResult] = useState(null)
 
-  const impostorChoices = Array.from({ length: maxImpostors }, (_, i) => i + 1)
+  // Keep the choice inside the allowed range if the player count changed.
+  const selectedImpostors = Math.min(Math.max(impostors, min), Math.max(min, max))
+  const impostorChoices = Array.from({ length: max }, (_, i) => i + 1)
+
+  function handleStart() {
+    // Validate again right before starting, as the guide requires.
+    const check = validateSetup(names, selectedImpostors)
+    setResult(
+      check.valid
+        ? {
+            ok: true,
+            message: `Setup is valid: ${playerCount} players, ${selectedImpostors} impostor${selectedImpostors > 1 ? 's' : ''}, ${hintSeconds}s hints, ${discussionSeconds}s discussion. Word and role assignment arrive in Milestone 3.`,
+          }
+        : { ok: false, errors: check.errors },
+    )
+  }
 
   return (
     <section className="screen">
@@ -25,20 +41,24 @@ export default function SettingsPage({ playerCount, onBack }) {
       <fieldset className="field">
         <legend>Impostors</legend>
         <p className="subtle">
-          Allowed for {playerCount} players: 1 to {maxImpostors}.
+          Allowed for {playerCount} players: {min} to {max}.
         </p>
-        <div className="segmented">
-          {impostorChoices.map((n) => (
-            <button
-              key={n}
-              className={`segmented__btn${impostors === n ? ' is-active' : ''}`}
-              aria-pressed={impostors === n}
-              onClick={() => setImpostors(n)}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
+        {max < min ? (
+          <p className="error-text">Go back and add at least 4 players.</p>
+        ) : (
+          <div className="segmented">
+            {impostorChoices.map((n) => (
+              <button
+                key={n}
+                className={`segmented__btn${selectedImpostors === n ? ' is-active' : ''}`}
+                aria-pressed={selectedImpostors === n}
+                onClick={() => setImpostors(n)}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        )}
       </fieldset>
 
       <fieldset className="field">
@@ -73,16 +93,21 @@ export default function SettingsPage({ playerCount, onBack }) {
         </div>
       </fieldset>
 
-      <button
-        className="btn btn--primary"
-        onClick={() => setNotice('Game logic arrives in the next milestones.')}
-      >
+      <button className="btn btn--primary" onClick={handleStart}>
         Start game
       </button>
-      {notice && (
+
+      {result?.ok && (
         <p className="notice" role="status">
-          {notice}
+          {result.message}
         </p>
+      )}
+      {result && !result.ok && (
+        <ul className="error-box" role="alert">
+          {result.errors.map((message) => (
+            <li key={message}>{message}</li>
+          ))}
+        </ul>
       )}
     </section>
   )
