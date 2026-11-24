@@ -1,34 +1,29 @@
 import { useState } from 'react'
-import { getImpostorRange, validateSetup } from '../game/validateSetup.js'
+import { getImpostorRange } from '../game/validateSetup.js'
 
-// "Start game" now validates the whole setup. Roles and the word bank arrive
-// in Milestone 3, so a valid setup only shows a confirmation for now.
+// "Start game" asks the app to create the match. createGame validates the whole
+// setup again and returns any errors, which are shown here.
 const HINT_OPTIONS = [15, 30, 45, 60]
 const DISCUSSION_OPTIONS = [30, 60, 90, 120]
 
-export default function SettingsPage({ names, onBack }) {
+export default function SettingsPage({ names, settings, onSettingsChange, onBack, onStart }) {
   const playerCount = names.length
   const { min, max } = getImpostorRange(playerCount)
-  const [impostors, setImpostors] = useState(min)
-  const [hintSeconds, setHintSeconds] = useState(30)
-  const [discussionSeconds, setDiscussionSeconds] = useState(60)
-  const [result, setResult] = useState(null)
+  const { hintSeconds, discussionSeconds } = settings
+  const [errors, setErrors] = useState([])
 
   // Keep the choice inside the allowed range if the player count changed.
-  const selectedImpostors = Math.min(Math.max(impostors, min), Math.max(min, max))
+  const selectedImpostors = Math.min(Math.max(settings.impostorCount, min), Math.max(min, max))
+
+  function update(change) {
+    onSettingsChange({ ...settings, impostorCount: selectedImpostors, ...change })
+  }
   const impostorChoices = Array.from({ length: max }, (_, i) => i + 1)
 
   function handleStart() {
-    // Validate again right before starting, as the guide requires.
-    const check = validateSetup(names, selectedImpostors)
-    setResult(
-      check.valid
-        ? {
-            ok: true,
-            message: `Setup is valid: ${playerCount} players, ${selectedImpostors} impostor${selectedImpostors > 1 ? 's' : ''}, ${hintSeconds}s hints, ${discussionSeconds}s discussion. Word and role assignment arrive in Milestone 3.`,
-          }
-        : { ok: false, errors: check.errors },
-    )
+    // Pass exactly what is shown on screen (including a clamped impostor count).
+    const result = onStart({ impostorCount: selectedImpostors, hintSeconds, discussionSeconds })
+    setErrors(result.ok ? [] : result.errors)
   }
 
   return (
@@ -52,7 +47,7 @@ export default function SettingsPage({ names, onBack }) {
                 key={n}
                 className={`segmented__btn${selectedImpostors === n ? ' is-active' : ''}`}
                 aria-pressed={selectedImpostors === n}
-                onClick={() => setImpostors(n)}
+                onClick={() => update({ impostorCount: n })}
               >
                 {n}
               </button>
@@ -69,7 +64,7 @@ export default function SettingsPage({ names, onBack }) {
               key={s}
               className={`segmented__btn${hintSeconds === s ? ' is-active' : ''}`}
               aria-pressed={hintSeconds === s}
-              onClick={() => setHintSeconds(s)}
+              onClick={() => update({ hintSeconds: s })}
             >
               {s}s
             </button>
@@ -85,7 +80,7 @@ export default function SettingsPage({ names, onBack }) {
               key={s}
               className={`segmented__btn${discussionSeconds === s ? ' is-active' : ''}`}
               aria-pressed={discussionSeconds === s}
-              onClick={() => setDiscussionSeconds(s)}
+              onClick={() => update({ discussionSeconds: s })}
             >
               {s}s
             </button>
@@ -97,14 +92,9 @@ export default function SettingsPage({ names, onBack }) {
         Start game
       </button>
 
-      {result?.ok && (
-        <p className="notice" role="status">
-          {result.message}
-        </p>
-      )}
-      {result && !result.ok && (
+      {errors.length > 0 && (
         <ul className="error-box" role="alert">
-          {result.errors.map((message) => (
+          {errors.map((message) => (
             <li key={message}>{message}</li>
           ))}
         </ul>

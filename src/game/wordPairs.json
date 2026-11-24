@@ -1,0 +1,12 @@
+[
+  { "id": "word-001", "word": "DOG", "impostorClue": "BARKS", "category": "Animals", "difficulty": "easy", "enabled": true },
+  { "id": "word-002", "word": "PIZZA", "impostorClue": "CHEESE", "category": "Food", "difficulty": "easy", "enabled": true },
+  { "id": "word-003", "word": "AIRPLANE", "impostorClue": "WINGS", "category": "Transportation", "difficulty": "easy", "enabled": true },
+  { "id": "word-004", "word": "GUITAR", "impostorClue": "STRINGS", "category": "Music", "difficulty": "easy", "enabled": true },
+  { "id": "word-005", "word": "OCEAN", "impostorClue": "WAVES", "category": "Nature", "difficulty": "medium", "enabled": true },
+  { "id": "word-006", "word": "ELEPHANT", "impostorClue": "TRUNK", "category": "Animals", "difficulty": "easy", "enabled": true },
+  { "id": "word-007", "word": "LIBRARY", "impostorClue": "SILENCE", "category": "Places", "difficulty": "medium", "enabled": true },
+  { "id": "word-008", "word": "CAMERA", "impostorClue": "LENS", "category": "Technology", "difficulty": "medium", "enabled": true },
+  { "id": "word-009", "word": "CANDLE", "impostorClue": "WAX", "category": "Home", "difficulty": "medium", "enabled": true },
+  { "id": "word-010", "word": "UMBRELLA", "impostorClue": "RAIN", "category": "Weather", "difficulty": "easy", "enabled": true }
+]
