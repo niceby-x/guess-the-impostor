@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createGame } from '../game/createGame.js'
+import { DEFAULT_SETTINGS, STARTER_NAMES, resetGame } from '../game/resetGame.js'
 import {
   advanceHintTurn,
   beginHintRound,
@@ -18,21 +19,30 @@ import SettingsPage from '../pages/SettingsPage.jsx'
 import VotingPage from '../pages/VotingPage.jsx'
 
 // A simple screen switcher. No router package needed yet.
-// Player names live here so they survive moving between Setup and Settings.
-const STARTER_NAMES = ['', '', '', '']
-const DEFAULT_SETTINGS = { impostorCount: 1, hintSeconds: 30, discussionSeconds: 60 }
-
+// Player names, settings, the current match and the previous word pair's id
+// all live here, so they survive moving between screens.
 export default function App() {
   const [screen, setScreen] = useState('HOME') // HOME | SETUP | SETTINGS | GAME
-  const [names, setNames] = useState(STARTER_NAMES)
+  const [names, setNames] = useState(() => [...STARTER_NAMES])
   // Settings also live here, so they are kept when the host goes back and forth.
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+  const [settings, setSettings] = useState(() => ({ ...DEFAULT_SETTINGS }))
   const [game, setGame] = useState(null)
+  // Only the ID of the previous match's word pair, so a new match never repeats
+  // it back to back. The word, clue and roles themselves are never kept.
+  const [lastPairId, setLastPairId] = useState(null)
 
-  // A match is in progress while the GAME screen is showing. Refreshing or
-  // closing the tab would lose it, so the browser asks first (guide section
-  // 10.2). Nothing is saved to localStorage.
-  const matchActive = screen === 'GAME'
+  const session = { names, settings, game, lastPairId }
+  function applySession(next) {
+    setNames(next.names)
+    setSettings(next.settings)
+    setGame(next.game)
+    setLastPairId(next.lastPairId)
+  }
+
+  // A match is in progress while the GAME screen is showing and the game is not
+  // over yet. Refreshing or closing the tab would lose it, so the browser asks
+  // first (guide section 10.2). Nothing is saved to localStorage.
+  const matchActive = screen === 'GAME' && game?.phase !== 'GAME_OVER'
   useEffect(() => {
     if (!matchActive) return undefined
     function warn(event) {
@@ -49,7 +59,7 @@ export default function App() {
     setScreen('SETTINGS')
   }
 
-  // Creates a match. The previous match's word pair is passed in so the same
+  // Creates a match. The previous match's word pair id is passed in so the same
   // pair is not picked twice in a row. Returns the result so the Settings
   // screen can show any errors.
   function handleStartGame(chosen) {
@@ -57,7 +67,7 @@ export default function App() {
     const result = createGame({
       names,
       ...chosen,
-      lastPairId: game ? game.wordPairId : null,
+      lastPairId: game ? game.wordPairId : lastPairId,
     })
     if (result.ok) {
       setGame(result.game)
@@ -81,7 +91,27 @@ export default function App() {
   const startRevote = () => setGame((g) => (g.phase === 'VOTING' ? acknowledgeTie(g) : g))
   const continueRound = () =>
     setGame((g) => (g.phase === 'ROUND_RESULT' ? continueFromResult(g) : g))
-  const endGame = () => setScreen('SETTINGS')
+
+  // Every way out of a match goes through resetGame, so nothing from the old
+  // match (roles, votes, round, word, clue) can show up in the next one.
+  // Cancel game, End game and "Change players or settings" keep names and
+  // settings; they return to the Settings screen.
+  const endGame = () => {
+    applySession(resetGame(session))
+    setScreen('SETTINGS')
+  }
+  // Play again: same players and settings, brand new roles and word.
+  const playAgain = () => {
+    const next = resetGame(session)
+    const result = createGame({ names: next.names, ...next.settings, lastPairId: next.lastPairId })
+    applySession({ ...next, game: result.ok ? result.game : null })
+    setScreen(result.ok ? 'GAME' : 'SETTINGS')
+  }
+  // Home: forget everything except the previous pair's id.
+  const goHome = () => {
+    applySession(resetGame(session, { clearNames: true }))
+    setScreen('HOME')
+  }
 
   return (
     <main className="app">
@@ -130,7 +160,12 @@ export default function App() {
         <RoundResultPage game={game} onContinue={continueRound} />
       )}
       {screen === 'GAME' && game?.phase === 'GAME_OVER' && (
-        <GameOverPage winner={game.winner} onBack={endGame} />
+        <GameOverPage
+          game={game}
+          onPlayAgain={playAgain}
+          onChangeSettings={endGame}
+          onHome={goHome}
+        />
       )}
     </main>
   )
