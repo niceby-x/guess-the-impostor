@@ -3,7 +3,7 @@ import { getImpostorRange } from '../game/validateSetup.js'
 
 // "Start game" asks the app to create the match. createGame validates the whole
 // setup again and returns any errors, which are shown here.
-const HINT_OPTIONS = [15, 30, 45, 60]
+const HINT_OPTIONS = [0, 15, 30, 45, 60] // 0 = no hint timer (it is optional)
 const DISCUSSION_OPTIONS = [30, 60, 90, 120]
 
 export default function SettingsPage({ names, settings, onSettingsChange, onBack, onStart }) {
@@ -66,7 +66,7 @@ export default function SettingsPage({ names, settings, onSettingsChange, onBack
               aria-pressed={hintSeconds === s}
               onClick={() => update({ hintSeconds: s })}
             >
-              {s}s
+              {s === 0 ? 'Off' : `${s}s`}
             </button>
           ))}
         </div>
