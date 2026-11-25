@@ -1,4 +1,6 @@
+import { checkWinner } from './checkWinner.js'
 import { createHintOrder } from './hintRound.js'
+import { createVotingState } from './voting.js'
 
 // Named phase changes (guide section 7.3). Each one checks the current phase
 // and returns a NEW game object; it never changes the one it was given.
@@ -34,8 +36,28 @@ export function advanceHintTurn(game, fromIndex = game.currentHintIndex) {
     : { ...game, currentHintIndex: game.currentHintIndex + 1 }
 }
 
-// DISCUSSION -> VOTING, when the timer ends or the host continues.
+// DISCUSSION -> VOTING, when the timer ends or the host continues. Sets up the
+// first ballot: every active player votes, for any other active player.
 export function finishDiscussion(game) {
   requirePhase(game, 'DISCUSSION', 'finish the discussion')
-  return { ...game, phase: 'VOTING' }
+  return { ...game, phase: 'VOTING', votes: {}, voting: createVotingState(game) }
+}
+
+// ROUND_RESULT -> GAME_OVER or the next HINTING round (guide section 7.3).
+// The winner check decides. For a next round the round number goes up and a
+// fresh speaking order is made from the players still in the game.
+export function continueFromResult(game, randomInt) {
+  requirePhase(game, 'ROUND_RESULT', 'continue from the round result')
+  const { winner } = checkWinner(game)
+  if (winner) return { ...game, phase: 'GAME_OVER', winner, roundResult: null }
+  return {
+    ...game,
+    phase: 'HINTING',
+    roundNumber: game.roundNumber + 1,
+    hintOrder: createHintOrder(game.players, randomInt),
+    currentHintIndex: 0,
+    votes: {},
+    voting: null,
+    roundResult: null,
+  }
 }

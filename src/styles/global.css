@@ -178,6 +178,25 @@ h2 { font-size: 1.75rem; }
 .order-item--speaking .order-item__status { color: var(--primary); }
 .order-item--done { opacity: 0.65; }
 
+/* Private voting and round result */
+.status-chip--ok { background: var(--regular); color: var(--primary-text); }
+.vote-list { display: grid; gap: 10px; }
+.vote-option {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  font: inherit; font-size: 1.15rem; font-weight: 800; text-align: left;
+  min-height: 60px; padding: 0 18px; cursor: pointer;
+  background: var(--surface); color: var(--text);
+  border: 2px solid var(--surface-2); border-radius: var(--radius);
+}
+.vote-option.is-selected { border-color: var(--primary); background: var(--surface-2); }
+.vote-option__tag { color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.role-reveal {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  margin: 0; padding: 14px; border-radius: var(--radius); background: var(--surface);
+}
+.role-reveal--regular { border-left: 6px solid var(--regular); }
+.role-reveal--impostor { border-left: 6px solid var(--impostor); }
+
 .notice { background: var(--surface); border-radius: var(--radius); padding: 12px 14px; margin: 0; color: var(--text-dim); }
 
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
