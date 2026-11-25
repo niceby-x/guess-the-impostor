@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react'
 import { createGame } from '../game/createGame.js'
-import { advanceHintTurn, beginHintRound, finishDiscussion } from '../game/phaseTransitions.js'
+import {
+  advanceHintTurn,
+  beginHintRound,
+  continueFromResult,
+  finishDiscussion,
+} from '../game/phaseTransitions.js'
+import { acknowledgeTie, submitPrivateVote } from '../game/voting.js'
 import DiscussionPage from '../pages/DiscussionPage.jsx'
+import GameOverPage from '../pages/GameOverPage.jsx'
 import HintRoundPage from '../pages/HintRoundPage.jsx'
 import HomePage from '../pages/HomePage.jsx'
 import PlayerSetupPage from '../pages/PlayerSetupPage.jsx'
 import RoleRevealPage from '../pages/RoleRevealPage.jsx'
+import RoundResultPage from '../pages/RoundResultPage.jsx'
 import SettingsPage from '../pages/SettingsPage.jsx'
 import VotingPage from '../pages/VotingPage.jsx'
 
@@ -66,6 +74,13 @@ export default function App() {
     setGame((g) => (g.phase === 'HINTING' ? advanceHintTurn(g, fromIndex) : g))
   const endDiscussion = () =>
     setGame((g) => (g.phase === 'DISCUSSION' ? finishDiscussion(g) : g))
+  // A repeated tap for a vote that is already saved is ignored by
+  // submitPrivateVote, so a double-tap cannot count twice.
+  const castVote = (voterId, targetId) =>
+    setGame((g) => (g.phase === 'VOTING' ? submitPrivateVote(g, voterId, targetId) : g))
+  const startRevote = () => setGame((g) => (g.phase === 'VOTING' ? acknowledgeTie(g) : g))
+  const continueRound = () =>
+    setGame((g) => (g.phase === 'ROUND_RESULT' ? continueFromResult(g) : g))
   const endGame = () => setScreen('SETTINGS')
 
   return (
@@ -102,7 +117,21 @@ export default function App() {
       {screen === 'GAME' && game?.phase === 'DISCUSSION' && (
         <DiscussionPage game={game} onFinish={endDiscussion} onEnd={endGame} />
       )}
-      {screen === 'GAME' && game?.phase === 'VOTING' && <VotingPage onBack={endGame} />}
+      {screen === 'GAME' && game?.phase === 'VOTING' && (
+        <VotingPage
+          key={`${game.voting.stage}-${game.voting.currentVoterIndex}-${game.voting.tieNoticePending}`}
+          game={game}
+          onVote={castVote}
+          onStartRevote={startRevote}
+          onEnd={endGame}
+        />
+      )}
+      {screen === 'GAME' && game?.phase === 'ROUND_RESULT' && (
+        <RoundResultPage game={game} onContinue={continueRound} />
+      )}
+      {screen === 'GAME' && game?.phase === 'GAME_OVER' && (
+        <GameOverPage winner={game.winner} onBack={endGame} />
+      )}
     </main>
   )
 }
