@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import useReadyAfter from '../hooks/useReadyAfter.js'
 
 // The Reveal button stays disabled for a moment after this screen appears, so a
 // fast double-tap on "Hide and pass" cannot reveal the NEXT player's role to
@@ -16,14 +17,12 @@ export default function HandoffScreen({
   onGoBack,
   onQuit,
 }) {
-  const [ready, setReady] = useState(false)
+  const ready = useReadyAfter(READY_DELAY_MS)
   const [confirming, setConfirming] = useState(null) // null | 'BACK' | 'QUIT'
   const headingRef = useRef(null)
 
   useEffect(() => {
     headingRef.current?.focus()
-    const timer = setTimeout(() => setReady(true), READY_DELAY_MS)
-    return () => clearTimeout(timer)
   }, [])
 
   return (
