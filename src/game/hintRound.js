@@ -28,6 +28,7 @@ export function getHintTurnView(game) {
   }))
   return {
     roundNumber: game.roundNumber,
+    speakerId: entries[game.currentHintIndex].id,
     speakerName: entries[game.currentHintIndex].name,
     position: game.currentHintIndex + 1,
     total: entries.length,

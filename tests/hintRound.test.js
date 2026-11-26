@@ -63,6 +63,7 @@ describe('getHintTurnView', () => {
     const view = getHintTurnView(start())
     expect(view.roundNumber).toBe(1)
     expect(view.speakerName).toBe('Jamie')
+    expect(view.speakerId).toBe('player-2')
     expect(view.position).toBe(1)
     expect(view.total).toBe(6)
     expect(view.isLast).toBe(false)

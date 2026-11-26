@@ -1,10 +1,20 @@
 import { useState } from 'react'
+import Avatar from '../components/Avatar.jsx'
+import Screen from '../components/Screen.jsx'
 import { getImpostorRange } from '../game/validateSetup.js'
 
 // "Start game" asks the app to create the match. createGame validates the whole
 // setup again and returns any errors, which are shown here.
 const HINT_OPTIONS = [0, 15, 30, 45, 60] // 0 = no hint timer (it is optional)
 const DISCUSSION_OPTIONS = [30, 60, 90, 120]
+
+function Choice({ label, active, onPick }) {
+  return (
+    <button className={`segmented__btn${active ? ' is-active' : ''}`} aria-pressed={active} onClick={onPick}>
+      {label}
+    </button>
+  )
+}
 
 export default function SettingsPage({ names, settings, onSettingsChange, onBack, onStart }) {
   const playerCount = names.length
@@ -14,11 +24,11 @@ export default function SettingsPage({ names, settings, onSettingsChange, onBack
 
   // Keep the choice inside the allowed range if the player count changed.
   const selectedImpostors = Math.min(Math.max(settings.impostorCount, min), Math.max(min, max))
+  const impostorChoices = Array.from({ length: max }, (_, i) => i + 1)
 
   function update(change) {
     onSettingsChange({ ...settings, impostorCount: selectedImpostors, ...change })
   }
-  const impostorChoices = Array.from({ length: max }, (_, i) => i + 1)
 
   function handleStart() {
     // Pass exactly what is shown on screen (including a clamped impostor count).
@@ -27,70 +37,77 @@ export default function SettingsPage({ names, settings, onSettingsChange, onBack
   }
 
   return (
-    <section className="screen">
-      <button className="link-back" onClick={onBack}>
-        &larr; Back
-      </button>
-      <h2>Game settings</h2>
+    <Screen
+      tone="table"
+      hud={
+        <button className="btn btn--back" onClick={onBack}>
+          Back
+        </button>
+      }
+      footer={
+        <button className="btn btn--primary" onClick={handleStart}>
+          Start game
+        </button>
+      }
+    >
+      <h1 className="title">Set the rules</h1>
 
-      <fieldset className="field">
+      <div>
+        <div className="faces-row" aria-hidden="true">
+          {names.map((name, index) => (
+            <Avatar key={index} seat={index} size="sm" />
+          ))}
+        </div>
+        <p className="note">
+          {playerCount} players: {names.join(', ')}
+        </p>
+      </div>
+
+      <fieldset className="setting">
         <legend>Impostors</legend>
-        <p className="subtle">
-          Allowed for {playerCount} players: {min} to {max}.
+        <p className="note">
+          For {playerCount} players you can have {min} to {max}.
         </p>
         {max < min ? (
           <p className="error-text">Go back and add at least 4 players.</p>
         ) : (
           <div className="segmented">
             {impostorChoices.map((n) => (
-              <button
-                key={n}
-                className={`segmented__btn${selectedImpostors === n ? ' is-active' : ''}`}
-                aria-pressed={selectedImpostors === n}
-                onClick={() => update({ impostorCount: n })}
-              >
-                {n}
-              </button>
+              <Choice key={n} label={n} active={selectedImpostors === n} onPick={() => update({ impostorCount: n })} />
             ))}
           </div>
         )}
       </fieldset>
 
-      <fieldset className="field">
-        <legend>Hint timer (per player)</legend>
+      <fieldset className="setting">
+        <legend>Hint timer</legend>
+        <p className="note">How long each person gets to give their hint.</p>
         <div className="segmented">
           {HINT_OPTIONS.map((s) => (
-            <button
+            <Choice
               key={s}
-              className={`segmented__btn${hintSeconds === s ? ' is-active' : ''}`}
-              aria-pressed={hintSeconds === s}
-              onClick={() => update({ hintSeconds: s })}
-            >
-              {s === 0 ? 'Off' : `${s}s`}
-            </button>
+              label={s === 0 ? 'Off' : `${s}s`}
+              active={hintSeconds === s}
+              onPick={() => update({ hintSeconds: s })}
+            />
           ))}
         </div>
       </fieldset>
 
-      <fieldset className="field">
+      <fieldset className="setting">
         <legend>Discussion timer</legend>
+        <p className="note">How long everyone talks before voting.</p>
         <div className="segmented">
           {DISCUSSION_OPTIONS.map((s) => (
-            <button
+            <Choice
               key={s}
-              className={`segmented__btn${discussionSeconds === s ? ' is-active' : ''}`}
-              aria-pressed={discussionSeconds === s}
-              onClick={() => update({ discussionSeconds: s })}
-            >
-              {s}s
-            </button>
+              label={`${s}s`}
+              active={discussionSeconds === s}
+              onPick={() => update({ discussionSeconds: s })}
+            />
           ))}
         </div>
       </fieldset>
-
-      <button className="btn btn--primary" onClick={handleStart}>
-        Start game
-      </button>
 
       {errors.length > 0 && (
         <ul className="error-box" role="alert">
@@ -99,6 +116,6 @@ export default function SettingsPage({ names, settings, onSettingsChange, onBack
           ))}
         </ul>
       )}
-    </section>
+    </Screen>
   )
 }

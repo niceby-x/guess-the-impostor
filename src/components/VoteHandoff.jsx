@@ -1,10 +1,14 @@
 import { useEffect, useRef } from 'react'
+import Avatar from './Avatar.jsx'
 import EndGameLink from './EndGameLink.jsx'
+import Screen from './Screen.jsx'
+import StepTracker from './StepTracker.jsx'
 import useReadyAfter from '../hooks/useReadyAfter.js'
 
-// Neutral "pass the phone" screen between ballots. It knows only a name and
-// progress. After a ballot it shows "Vote saved" and nothing about the choice.
-export default function VoteHandoff({ voterName, position, total, justSaved, isRevote, onStart, onEnd }) {
+// Neutral table screen between ballots. It knows only a name, a seat and
+// progress. After a ballot it stamps "Vote saved" and shows nothing about the
+// choice.
+export default function VoteHandoff({ voterName, seat, round, position, total, justSaved, isRevote, onStart, onEnd }) {
   // Disabled for a moment so a fast double-tap on "Confirm vote" cannot open
   // the NEXT voter's ballot in front of the previous voter.
   const ready = useReadyAfter(700)
@@ -14,23 +18,31 @@ export default function VoteHandoff({ voterName, position, total, justSaved, isR
   }, [])
 
   return (
-    <section className="screen screen--center handoff">
-      {justSaved && <span className="status-chip status-chip--ok">Vote saved</span>}
-      {isRevote && <span className="status-chip">Revote</span>}
-      <p className="subtle">
-        Voter {position} of {total}
-      </p>
-      <p className="handoff__lead">Pass the phone to</p>
-      <h2 className="handoff__name focus-target" tabIndex={-1} ref={headingRef}>
-        {voterName}
-      </h2>
-      <p className="subtle">Make sure nobody else is looking at the screen.</p>
-
-      <button className="btn btn--primary" onClick={onStart} disabled={!ready}>
-        Start my vote
-      </button>
-
-      <EndGameLink onEnd={onEnd} />
-    </section>
+    <Screen
+      tone="table"
+      center
+      hud={<StepTracker step="vote" round={round} />}
+      footer={
+        <>
+          <button className="btn btn--primary" onClick={onStart} disabled={!ready}>
+            Start my vote
+          </button>
+          <EndGameLink onEnd={onEnd} />
+        </>
+      }
+    >
+      <div className="deal">
+        {justSaved && <p className="stamp">Vote saved</p>}
+        {isRevote && <p className="note">Revote: you can only pick one of the tied players.</p>}
+        <p className="deal__lead">Pass the phone to</p>
+        <h1 className="deal__name focus-target" tabIndex={-1} ref={headingRef}>
+          {voterName}
+        </h1>
+        <Avatar seat={seat} size="xl" />
+        <p className="note">
+          Voter {position} of {total}. Hold the phone close so nobody else can see.
+        </p>
+      </div>
+    </Screen>
   )
 }

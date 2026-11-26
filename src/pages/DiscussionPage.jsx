@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react'
+import Avatar from '../components/Avatar.jsx'
 import EndGameLink from '../components/EndGameLink.jsx'
+import Screen from '../components/Screen.jsx'
+import StepTracker from '../components/StepTracker.jsx'
 import Timer from '../components/Timer.jsx'
+import { seatOf } from '../components/avatarSpec.js'
 import { getActivePlayers } from '../game/hintRound.js'
 import useReadyAfter from '../hooks/useReadyAfter.js'
 
@@ -14,32 +18,36 @@ export default function DiscussionPage({ game, onFinish, onEnd }) {
   }, [])
 
   return (
-    <section className="screen">
-      <span className="status-chip">Round {game.roundNumber}</span>
-      <h2 className="focus-target" tabIndex={-1} ref={headingRef}>
-        Discussion
-      </h2>
-      <p className="notice">
-        Everyone has given a hint. Talk it over: whose hint was vague, too
-        specific, or strange? Voting comes next.
+    <Screen
+      tone="table"
+      hud={<StepTracker step="talk" round={game.roundNumber} />}
+      footer={
+        <>
+          <button className="btn btn--primary" onClick={onFinish} disabled={!ready}>
+            Start voting now
+          </button>
+          <EndGameLink onEnd={onEnd} />
+        </>
+      }
+    >
+      <h1 className="title focus-target" tabIndex={-1} ref={headingRef}>
+        Talk it out
+      </h1>
+      <p className="lede">
+        Everyone has given a hint. Whose was vague, too specific, or just strange? Voting comes next.
       </p>
 
-      <Timer seconds={game.settings.discussionSeconds} onExpire={onFinish} label="Discussion ends in" />
+      <Timer seconds={game.settings.discussionSeconds} onExpire={onFinish} label="Voting starts in" />
 
-      <button className="btn btn--primary" onClick={onFinish} disabled={!ready}>
-        Start voting now
-      </button>
-
-      <h3 className="list-title">Players in the game</h3>
-      <ul className="order-list">
+      <h2 className="section-title">Still in the game</h2>
+      <ul className="crowd">
         {getActivePlayers(game).map((player) => (
-          <li key={player.id} className="order-item">
+          <li key={player.id} className="crowd__item">
+            <Avatar seat={seatOf(player.id)} size="md" />
             <span>{player.name}</span>
           </li>
         ))}
       </ul>
-
-      <EndGameLink onEnd={onEnd} />
-    </section>
+    </Screen>
   )
 }

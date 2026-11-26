@@ -1,4 +1,7 @@
 import { useEffect, useRef } from 'react'
+import Avatar from '../components/Avatar.jsx'
+import Screen from '../components/Screen.jsx'
+import { seatOf } from '../components/avatarSpec.js'
 import { getFinalReveal } from '../game/finalReveal.js'
 import useReadyAfter from '../hooks/useReadyAfter.js'
 
@@ -19,6 +22,9 @@ const WINNER_TEXT = {
 export default function GameOverPage({ game, onPlayAgain, onChangeSettings, onHome }) {
   const reveal = getFinalReveal(game)
   const text = WINNER_TEXT[reveal.winner]
+  // The winning team's survivors take a bow above the headline.
+  const winningRole = reveal.winner === 'IMPOSTORS' ? 'IMPOSTOR' : 'REGULAR'
+  const victors = reveal.players.filter((player) => player.role === winningRole && !player.isEliminated)
   // The buttons wake up a moment late, so a double-tap on the previous
   // screen's Continue cannot start a new match by accident.
   const ready = useReadyAfter(800)
@@ -28,54 +34,65 @@ export default function GameOverPage({ game, onPlayAgain, onChangeSettings, onHo
   }, [])
 
   return (
-    <section className="screen">
-      <span className="status-chip">Game over</span>
-      <h2 className="focus-target" tabIndex={-1} ref={headingRef}>
+    <Screen
+      tone="table"
+      footerFlow
+      footer={
+        <>
+          <button className="btn btn--primary" onClick={onPlayAgain} disabled={!ready}>
+            Play again
+          </button>
+          <button className="btn btn--paper" onClick={onChangeSettings} disabled={!ready}>
+            Change players or settings
+          </button>
+          <button className="btn btn--quiet" onClick={onHome} disabled={!ready}>
+            Home
+          </button>
+        </>
+      }
+    >
+      <div className="victors" aria-hidden="true">
+        {victors.map((player) => (
+          <Avatar key={player.id} seat={seatOf(player.id)} size="md" masked={reveal.winner === 'IMPOSTORS'} />
+        ))}
+      </div>
+      <h1 className="title focus-target" tabIndex={-1} ref={headingRef}>
         {text.title}
-      </h2>
-      <p className="notice" role="status">
+      </h1>
+      <p className="lede">
         {text.reason} The match lasted {reveal.roundsPlayed} {reveal.roundsPlayed === 1 ? 'round' : 'rounds'}.
       </p>
 
-      <h3 className="list-title">The secret</h3>
-      <dl className="secret-reveal">
-        <div>
-          <dt>Regular players had the word</dt>
-          <dd>{reveal.secretWord}</dd>
+      <h2 className="section-title">The secret</h2>
+      <dl className="secret-pair">
+        <div className="tile">
+          <dt className="tile__label">Regular players had the word</dt>
+          <dd className="tile__value">{reveal.secretWord}</dd>
         </div>
-        <div>
-          <dt>Impostors had the clue</dt>
-          <dd>{reveal.impostorClue}</dd>
+        <div className="tile tile--clue">
+          <dt className="tile__label">Impostors had the clue</dt>
+          <dd className="tile__value">{reveal.impostorClue}</dd>
         </div>
       </dl>
 
-      <h3 className="list-title">Everyone&rsquo;s role</h3>
-      <ul className="order-list">
-        {reveal.players.map((player) => (
-          <li
-            key={player.id}
-            className={`order-item ${player.role === 'IMPOSTOR' ? 'order-item--impostor' : 'order-item--regular'}`}
-          >
-            <span>{player.name}</span>
-            <span className="order-item__status">
-              {player.role === 'IMPOSTOR' ? 'Impostor' : 'Regular player'}
-              {' \u00b7 '}
-              {player.isEliminated ? 'Out' : 'Still in'}
-            </span>
-          </li>
-        ))}
+      <h2 className="section-title">Everyone&rsquo;s role</h2>
+      <ul className="order">
+        {reveal.players.map((player) => {
+          const isImpostor = player.role === 'IMPOSTOR'
+          return (
+            <li key={player.id} className="order__row">
+              <Avatar seat={seatOf(player.id)} size="sm" masked={isImpostor} out={player.isEliminated && !isImpostor} />
+              <span className="order__name">{player.name}</span>
+              <span className="order__tags">
+                <span className={`role-tag ${isImpostor ? 'role-tag--impostor' : 'role-tag--regular'}`}>
+                  {isImpostor ? 'Impostor' : 'Regular player'}
+                </span>
+                <span className="status-tag">{player.isEliminated ? 'Out' : 'Still in'}</span>
+              </span>
+            </li>
+          )
+        })}
       </ul>
-
-      <button className="btn btn--primary" onClick={onPlayAgain} disabled={!ready}>
-        Play again
-      </button>
-      <p className="hint-text">Same players and settings, new roles and a new word.</p>
-      <button className="btn btn--secondary" onClick={onChangeSettings} disabled={!ready}>
-        Change players or settings
-      </button>
-      <button className="btn btn--ghost" onClick={onHome} disabled={!ready}>
-        Home
-      </button>
-    </section>
+    </Screen>
   )
 }

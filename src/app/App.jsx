@@ -114,7 +114,7 @@ export default function App() {
   }
 
   return (
-    <main className="app">
+    <main>
       {screen === 'HOME' && <HomePage onStart={() => setScreen('SETUP')} />}
       {screen === 'SETUP' && (
         <PlayerSetupPage

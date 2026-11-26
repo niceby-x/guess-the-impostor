@@ -1,7 +1,11 @@
 import { useEffect, useRef } from 'react'
+import Avatar from '../components/Avatar.jsx'
 import EndGameLink from '../components/EndGameLink.jsx'
+import Screen from '../components/Screen.jsx'
+import StepTracker from '../components/StepTracker.jsx'
 import Timer from '../components/Timer.jsx'
 import { getHintTurnView } from '../game/hintRound.js'
+import { seatOf } from '../components/avatarSpec.js'
 import useReadyAfter from '../hooks/useReadyAfter.js'
 
 const STATUS_LABEL = { DONE: 'Done', SPEAKING: 'Speaking now', WAITING: 'Waiting' }
@@ -23,36 +27,40 @@ export default function HintRoundPage({ game, onNextSpeaker, onEnd }) {
   const finishTurn = () => onNextSpeaker(game.currentHintIndex)
 
   return (
-    <section className="screen">
-      <span className="status-chip">Round {view.roundNumber}</span>
-      <p className="subtle">
-        Speaker {view.position} of {view.total}
-      </p>
-      <h2 className="turn-name focus-target" tabIndex={-1} ref={headingRef}>
-        {view.speakerName}, it is your turn
-      </h2>
-      <p className="notice">
-        Say one short hint out loud. Do not say the secret word. Nothing is
-        typed.
-      </p>
+    <Screen
+      tone="table"
+      hud={<StepTracker step="hints" round={view.roundNumber} />}
+      footer={
+        <>
+          <button className="btn btn--primary" onClick={finishTurn} disabled={!ready}>
+            {view.isLast ? 'Finish hints' : 'Next speaker'}
+          </button>
+          <EndGameLink onEnd={onEnd} />
+        </>
+      }
+    >
+      <div className="speaker">
+        <Avatar seat={seatOf(view.speakerId)} size="lg" />
+        <p className="note">
+          Speaker {view.position} of {view.total}
+        </p>
+        <h1 className="title focus-target" tabIndex={-1} ref={headingRef}>
+          {view.speakerName}, you&rsquo;re up
+        </h1>
+        <p className="lede">Say one short hint out loud. Do not say the secret word.</p>
+      </div>
 
       {hintSeconds > 0 && <Timer seconds={hintSeconds} onExpire={finishTurn} />}
 
-      <button className="btn btn--primary" onClick={finishTurn} disabled={!ready}>
-        {view.isLast ? 'Finish hints' : 'Next speaker'}
-      </button>
-
-      <h3 className="list-title">Speaking order</h3>
-      <ol className="order-list">
+      <ol className="order" aria-label="Speaking order">
         {view.entries.map((entry) => (
-          <li key={entry.id} className={`order-item order-item--${entry.status.toLowerCase()}`}>
-            <span>{entry.name}</span>
-            <span className="order-item__status">{STATUS_LABEL[entry.status]}</span>
+          <li key={entry.id} className={`order__row order__row--${entry.status.toLowerCase()}`}>
+            <Avatar seat={seatOf(entry.id)} size="sm" />
+            <span className="order__name">{entry.name}</span>
+            <span className="order__status">{STATUS_LABEL[entry.status]}</span>
           </li>
         ))}
       </ol>
-
-      <EndGameLink onEnd={onEnd} />
-    </section>
+    </Screen>
   )
 }

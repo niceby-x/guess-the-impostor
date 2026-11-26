@@ -7,7 +7,7 @@ export default function EndGameLink({ onEnd }) {
 
   if (!confirming) {
     return (
-      <button className="link-small" onClick={() => setConfirming(true)}>
+      <button className="btn btn--quiet" onClick={() => setConfirming(true)}>
         End game
       </button>
     )
@@ -15,10 +15,10 @@ export default function EndGameLink({ onEnd }) {
   return (
     <div className="confirm" role="alertdialog" aria-label="Confirm ending the game">
       <p>End this game? All roles and progress are thrown away.</p>
-      <button className="btn btn--secondary" onClick={onEnd}>
+      <button className="btn btn--paper" onClick={onEnd}>
         Yes, end game
       </button>
-      <button className="btn btn--ghost" onClick={() => setConfirming(false)}>
+      <button className="btn btn--quiet" onClick={() => setConfirming(false)}>
         Keep playing
       </button>
     </div>

@@ -1,48 +1,64 @@
 import { useState } from 'react'
+import Avatar from '../components/Avatar.jsx'
+import Screen from '../components/Screen.jsx'
+
+// Four suspects in a line-up. One is wearing a disguise. This is the whole game
+// in one picture, so the title doesn't need to explain it.
+const LINEUP = [
+  { seat: 0, size: 76 },
+  { seat: 3, size: 96, masked: true },
+  { seat: 6, size: 82 },
+  { seat: 9, size: 90 },
+]
 
 export default function HomePage({ onStart }) {
   const [showRules, setShowRules] = useState(false)
 
   return (
-    <section className="screen screen--center">
-      <h1 className="title">
-        Guess the <span className="title__accent">Impostor</span>
-      </h1>
-      <p className="tagline">A social deduction word game for friends.</p>
-
-      <div className="role-preview" aria-label="The two roles">
-        <div className="role-preview__card role-preview__card--regular">
-          <span className="badge badge--regular">Regular player</span>
-          <p>Receives the exact secret word.</p>
-        </div>
-        <div className="role-preview__card role-preview__card--impostor">
-          <span className="badge badge--impostor">Impostor</span>
-          <p>Receives one related clue only.</p>
-        </div>
+    <Screen
+      tone="table"
+      center
+      footer={
+        <>
+          <button className="btn btn--primary" onClick={onStart}>
+            Play on this phone
+          </button>
+          <button
+            className="btn btn--quiet"
+            aria-expanded={showRules}
+            onClick={() => setShowRules((open) => !open)}
+          >
+            {showRules ? 'Hide the rules' : 'How to play'}
+          </button>
+        </>
+      }
+    >
+      <div className="lineup" aria-hidden="true">
+        {LINEUP.map((member, index) => (
+          <div className="lineup__member" key={member.seat} style={{ '--i': index, '--s': `${member.size}px` }}>
+            <Avatar seat={member.seat} masked={member.masked} />
+          </div>
+        ))}
       </div>
 
-      <button className="btn btn--primary" onClick={onStart}>
-        Classic Mode
-      </button>
-      <p className="hint-text">Pass the phone around. No accounts needed.</p>
-
-      <button
-        className="btn btn--ghost"
-        aria-expanded={showRules}
-        onClick={() => setShowRules((v) => !v)}
-      >
-        How to Play
-      </button>
+      <h1 className="display">
+        <span>Guess the</span>
+        <span>Impostor</span>
+      </h1>
+      <p className="lede">
+        Everyone gets the same secret word. Except one of you, who only gets a clue.
+      </p>
+      <p className="note">One phone, passed around the table. No accounts.</p>
 
       {showRules && (
-        <ol className="rules">
-          <li>Everyone enters their name, and the host picks how many impostors.</li>
-          <li>Pass the phone. Each player privately sees their word or clue.</li>
-          <li>Take turns saying one short spoken hint. Never say the word itself.</li>
-          <li>Discuss, then vote privately for who you think the impostor is.</li>
-          <li>Keep going until all impostors are out, or they outnumber everyone else.</li>
+        <ol className="howto">
+          <li>Add everyone&rsquo;s name and pick how many impostors there are.</li>
+          <li>Pass the phone. Each person secretly sees their word, or the impostor&rsquo;s clue.</li>
+          <li>Take turns saying one hint out loud. Never say the word itself.</li>
+          <li>Talk it over, then vote in secret for who you think is bluffing.</li>
+          <li>Vote out every impostor to win. If they last until they match the rest of you, they win.</li>
         </ol>
       )}
-    </section>
+    </Screen>
   )
 }
