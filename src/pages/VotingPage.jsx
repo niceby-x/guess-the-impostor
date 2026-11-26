@@ -1,7 +1,11 @@
-import { useCallback, useState } from 'react'
+import { Fragment, useCallback, useState } from 'react'
+import Avatar from '../components/Avatar.jsx'
 import EndGameLink from '../components/EndGameLink.jsx'
 import PrivateVotePanel from '../components/PrivateVotePanel.jsx'
+import Screen from '../components/Screen.jsx'
+import StepTracker from '../components/StepTracker.jsx'
 import VoteHandoff from '../components/VoteHandoff.jsx'
+import { seatOf } from '../components/avatarSpec.js'
 import { getCurrentVoter, getVoteTargets } from '../game/voting.js'
 import usePageHidden from '../hooks/usePageHidden.js'
 
@@ -20,18 +24,40 @@ export default function VotingPage({ game, onVote, onStartRevote, onEnd }) {
 
   if (voting.tieNoticePending) {
     return (
-      <section className="screen">
-        <span className="status-chip">Tie</span>
-        <h2>It is a tie</h2>
-        <p className="notice" role="status">
-          {voting.candidateIds.map(nameOf).join(' and ')} got the same number of votes. Everyone
-          votes again, but only for them.
+      <Screen
+        tone="table"
+        center
+        hud={<StepTracker step="vote" round={game.roundNumber} />}
+        footer={
+          <>
+            <button className="btn btn--primary" onClick={onStartRevote}>
+              Start revote
+            </button>
+            <EndGameLink onEnd={onEnd} />
+          </>
+        }
+      >
+        <h1 className="title center">It&rsquo;s a tie</h1>
+        <div className="versus">
+          {voting.candidateIds.map((id, index) => (
+            <Fragment key={id}>
+              {index > 0 && (
+                <span className="versus__vs" aria-hidden="true">
+                  vs
+                </span>
+              )}
+              <div className="versus__side">
+                <Avatar seat={seatOf(id)} size="lg" />
+                <span>{nameOf(id)}</span>
+              </div>
+            </Fragment>
+          ))}
+        </div>
+        <p className="lede center">
+          {voting.candidateIds.map(nameOf).join(' and ')} got the same number of votes. Everyone votes
+          again, but only for them.
         </p>
-        <button className="btn btn--primary" onClick={onStartRevote}>
-          Start revote
-        </button>
-        <EndGameLink onEnd={onEnd} />
-      </section>
+      </Screen>
     )
   }
 
@@ -50,6 +76,8 @@ export default function VotingPage({ game, onVote, onStartRevote, onEnd }) {
   return (
     <VoteHandoff
       voterName={voter.name}
+      seat={seatOf(voter.id)}
+      round={game.roundNumber}
       position={voting.currentVoterIndex + 1}
       total={voting.voterIds.length}
       justSaved={voting.currentVoterIndex > 0}

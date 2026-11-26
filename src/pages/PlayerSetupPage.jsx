@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import Avatar from '../components/Avatar.jsx'
+import Screen from '../components/Screen.jsx'
 import { MAX_PLAYERS, MIN_PLAYERS, validatePlayers } from '../game/validateSetup.js'
 
 export default function PlayerSetupPage({ names, onChange, onBack, onNext }) {
@@ -17,22 +19,28 @@ export default function PlayerSetupPage({ names, onChange, onBack, onNext }) {
     if (names.length < MAX_PLAYERS) onChange([...names, ''])
   }
   function handleNext() {
-    if (result.valid) {
-      onNext(result.names)
-    } else {
-      setShowErrors(true)
-    }
+    if (result.valid) onNext(result.names)
+    else setShowErrors(true)
   }
 
   return (
-    <section className="screen">
-      <button className="link-back" onClick={onBack}>
-        &larr; Back
-      </button>
-      <h2>Who is playing?</h2>
-      <p className="subtle">
-        Add {MIN_PLAYERS} to {MAX_PLAYERS} players ({names.length} so far). Names
-        are 2 to 16 characters and must all be different.
+    <Screen
+      tone="table"
+      hud={
+        <button className="btn btn--back" onClick={onBack}>
+          Back
+        </button>
+      }
+      footer={
+        <button className="btn btn--primary" onClick={handleNext}>
+          Next: Settings
+        </button>
+      }
+    >
+      <h1 className="title">Who&rsquo;s playing?</h1>
+      <p className="lede">
+        Add {MIN_PLAYERS} to {MAX_PLAYERS} players. You have {names.length} so far. Names are 2 to 16
+        characters and all different.
       </p>
 
       {showErrors && result.errors.length > 0 && (
@@ -43,34 +51,33 @@ export default function PlayerSetupPage({ names, onChange, onBack, onNext }) {
         </ul>
       )}
 
-      <ul className="player-list">
+      <ul className="roster">
         {names.map((name, index) => {
           const message = showErrors ? result.nameErrors[index] : undefined
           return (
-            <li key={index} className="player-item">
-              <div className="player-row">
-                <label className="sr-only" htmlFor={`player-${index}`}>
-                  Player {index + 1} name
-                </label>
-                <input
-                  id={`player-${index}`}
-                  className={`input${message ? ' input--invalid' : ''}`}
-                  type="text"
-                  maxLength={32}
-                  placeholder={`Player ${index + 1}`}
-                  value={name}
-                  aria-invalid={message ? 'true' : undefined}
-                  aria-describedby={message ? `player-${index}-error` : undefined}
-                  onChange={(e) => updateName(index, e.target.value)}
-                />
-                <button
-                  className="btn btn--icon"
-                  aria-label={`Remove player ${index + 1}`}
-                  onClick={() => removeName(index)}
-                >
-                  &times;
-                </button>
-              </div>
+            <li key={index} className="roster__row">
+              <Avatar seat={index} />
+              <label className="sr-only" htmlFor={`player-${index}`}>
+                Player {index + 1} name
+              </label>
+              <input
+                id={`player-${index}`}
+                className={`field${message ? ' field--invalid' : ''}`}
+                type="text"
+                maxLength={32}
+                placeholder={`Player ${index + 1}`}
+                value={name}
+                aria-invalid={message ? 'true' : undefined}
+                aria-describedby={message ? `player-${index}-error` : undefined}
+                onChange={(e) => updateName(index, e.target.value)}
+              />
+              <button
+                className="btn btn--icon"
+                aria-label={`Remove player ${index + 1}`}
+                onClick={() => removeName(index)}
+              >
+                &times;
+              </button>
               {message && (
                 <p className="error-text" id={`player-${index}-error`}>
                   {message}
@@ -81,17 +88,9 @@ export default function PlayerSetupPage({ names, onChange, onBack, onNext }) {
         })}
       </ul>
 
-      <button
-        className="btn btn--secondary"
-        onClick={addName}
-        disabled={names.length >= MAX_PLAYERS}
-      >
-        + Add player
+      <button className="btn btn--paper" onClick={addName} disabled={names.length >= MAX_PLAYERS}>
+        Add a player
       </button>
-
-      <button className="btn btn--primary" onClick={handleNext}>
-        Next: Settings
-      </button>
-    </section>
+    </Screen>
   )
 }

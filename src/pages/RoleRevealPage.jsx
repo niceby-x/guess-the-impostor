@@ -35,6 +35,7 @@ export default function RoleRevealPage({ game, onFinished, onQuit }) {
         // A new key per player guarantees the old card is fully replaced.
         key={`reveal-${reveal.index}`}
         playerName={view.playerName}
+        seat={reveal.index}
         display={view.display}
         onHide={handleHideAndPass}
       />
@@ -45,6 +46,7 @@ export default function RoleRevealPage({ game, onFinished, onQuit }) {
     <HandoffScreen
       key={`handoff-${reveal.index}`}
       playerName={view.playerName}
+      seat={reveal.index}
       position={view.position}
       total={view.total}
       canGoBack={view.canGoBack}
