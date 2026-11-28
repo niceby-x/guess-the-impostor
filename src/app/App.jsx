@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createGame } from '../game/createGame.js'
+import useAppHeight from '../hooks/useAppHeight.js'
 import { DEFAULT_SETTINGS, STARTER_NAMES, resetGame } from '../game/resetGame.js'
 import {
   advanceHintTurn,
@@ -22,6 +23,7 @@ import VotingPage from '../pages/VotingPage.jsx'
 // Player names, settings, the current match and the previous word pair's id
 // all live here, so they survive moving between screens.
 export default function App() {
+  useAppHeight() // size every screen to the VISIBLE height of the phone
   const [screen, setScreen] = useState('HOME') // HOME | SETUP | SETTINGS | GAME
   const [names, setNames] = useState(() => [...STARTER_NAMES])
   // Settings also live here, so they are kept when the host goes back and forth.
